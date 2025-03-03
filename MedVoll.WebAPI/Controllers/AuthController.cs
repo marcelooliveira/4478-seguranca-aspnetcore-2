@@ -1,5 +1,6 @@
 ﻿using MedVoll.Web.Dtos;
 using MedVoll.WebAPI.Dtos;
+using MedVoll.WebAPI.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,10 +12,13 @@ public class AuthController : ControllerBase
 {
     private readonly UserManager<IdentityUser> userManager;
     private readonly SignInManager<IdentityUser> signInManager;
-    public AuthController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager)
+    private readonly TokenJWTService tokenJWTService;
+
+    public AuthController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, TokenJWTService tokenJWTService)
     {
         this.userManager = userManager;
         this.signInManager = signInManager;
+        this.tokenJWTService = tokenJWTService;
     }
 
     //Endpoints
@@ -40,7 +44,9 @@ public class AuthController : ControllerBase
         }
         await signInManager.SignInAsync(usuario, isPersistent: false);
 
-        return Ok("Usuário Criado com sucesso!");
+        return Ok(new { Mensagem = "Usuário registrado com sucesso",
+            Token = tokenJWTService.GerarTokenDeUsuario(usuarioDto)
+        });
     }
 
     [HttpPost("login")]
@@ -51,7 +57,11 @@ public class AuthController : ControllerBase
         {
             return BadRequest("Falha no login do usuário.");
         }
-        return Ok("Logado com sucesso!");
+        return Ok(new
+        {
+            Mensagem = "Usuário logado com sucesso",
+            Token = tokenJWTService.GerarTokenDeUsuario(usuarioDto)
+        });
     }
 
 }
