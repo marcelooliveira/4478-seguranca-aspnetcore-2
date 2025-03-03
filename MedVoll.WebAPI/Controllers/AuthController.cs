@@ -57,10 +57,15 @@ public class AuthController : ControllerBase
         {
             return BadRequest("Falha no login do usuário.");
         }
-        return Ok(new
+
+        UsuarioTokenDto usuarioTokenDto = tokenJWTService.GerarTokenDeUsuario(usuarioDto);
+        var refreshToken = tokenJWTService.GerarRefreshToken();
+        usuarioTokenDto.RefreshToken = refreshToken;
+
+        return base.Ok(new
         {
             Mensagem = "Usuário logado com sucesso",
-            Token = tokenJWTService.GerarTokenDeUsuario(usuarioDto)
+            Token = usuarioTokenDto
         });
     }
 
