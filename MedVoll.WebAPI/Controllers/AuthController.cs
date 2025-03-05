@@ -1,5 +1,6 @@
 ﻿using MedVoll.Web.Dtos;
 using MedVoll.WebAPI.Dtos;
+using MedVoll.WebAPI.Models;
 using MedVoll.WebAPI.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -10,15 +11,17 @@ namespace MedVoll.Web.Controllers;
 [ApiController]
 public class AuthController : ControllerBase
 {
-    private readonly UserManager<IdentityUser> userManager;
-    private readonly SignInManager<IdentityUser> signInManager;
+    private readonly UserManager<VollMedUser> userManager;
+    private readonly SignInManager<VollMedUser> signInManager;
     private readonly TokenJWTService tokenJWTService;
+    private readonly IConfiguration configuration;
 
-    public AuthController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, TokenJWTService tokenJWTService)
+    public AuthController(UserManager<VollMedUser> userManager, SignInManager<VollMedUser> signInManager, TokenJWTService tokenJWTService, IConfiguration configuration)
     {
         this.userManager = userManager;
         this.signInManager = signInManager;
         this.tokenJWTService = tokenJWTService;
+        this.configuration = configuration;
     }
 
     //Endpoints
@@ -31,7 +34,7 @@ public class AuthController : ControllerBase
             return BadRequest("Usuário já foi registrado na base de dados.");
         }
 
-        var usuario = new IdentityUser
+        var usuario = new VollMedUser
         {
             UserName = usuarioDto.Email,
             Email = usuarioDto.Email,
@@ -52,6 +55,12 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> LoginAsync([FromBody] UsuarioDto usuarioDto)
     {
+        var usuario = await userManager.FindByEmailAsync(usuarioDto.Email!);
+        if (usuario is null)
+        {
+            return BadRequest("usuário não encontrado.");
+        }
+
         var result = await signInManager.PasswordSignInAsync(usuarioDto.Email!, usuarioDto.Senha!, isPersistent: false, lockoutOnFailure: false);
         if (!result.Succeeded)
         {
@@ -61,6 +70,13 @@ public class AuthController : ControllerBase
         UsuarioTokenDto usuarioTokenDto = tokenJWTService.GerarTokenDeUsuario(usuarioDto);
         var refreshToken = tokenJWTService.GerarRefreshToken();
         usuarioTokenDto.RefreshToken = refreshToken;
+
+        //Adicionar o refresh token ao usuário
+        usuario.RefreshToken = refreshToken;
+        var expire = int.TryParse(configuration["JWTTokenConfiguration:RefreshExpireInMinutes"],
+            out int refreshExpireInMinutes);
+        usuario.ExpireTime = DateTime.Now.AddMinutes(refreshExpireInMinutes);
+        await userManager.UpdateAsync(usuario);
 
         return base.Ok(new
         {
