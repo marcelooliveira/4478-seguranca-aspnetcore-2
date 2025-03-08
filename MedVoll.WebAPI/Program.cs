@@ -18,9 +18,9 @@ builder.Services.AddControllers();
 var connectionString = builder.Configuration.GetConnectionString("SqliteConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(x => x.UseSqlite(connectionString));
 
-builder.Services.AddDefaultIdentity<VollMedUser>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddRoles<IdentityRole>()
-    .AddEntityFrameworkStores<ApplicationDbContext>();
+builder.Services.AddIdentity<VollMedUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = true)
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
 
 ////////////////////// Swagger //////////////////////
 builder.Services.AddEndpointsApiExplorer();
@@ -45,6 +45,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
                 Encoding.UTF8.GetBytes(builder.Configuration["JWTKey:key"]!)),
     });
 builder.Services.ConfigureSwagger();
+
+builder.Services.AddAuthorization(auth => {
+    auth.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
+    auth.AddPolicy("RH", policy => policy.RequireRole("RH"));
+    auth.AddPolicy("Atendimento", policy => policy.RequireRole("Atendimento"));
+    auth.AddPolicy("EditorDeMedicos", policy => 
+    {
+        policy.RequireAssertion(handler => handler.User.IsInRole("Admin")
+            && handler.User.IsInRole("RH"));
+    });
+
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

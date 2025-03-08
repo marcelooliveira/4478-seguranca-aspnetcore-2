@@ -1,4 +1,5 @@
 ﻿using MedVoll.WebAPI.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,6 +7,7 @@ namespace MedVoll.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize("Admin")]
     public class RoleController : ControllerBase
     {
         private readonly RoleManager<IdentityRole> roleManager;

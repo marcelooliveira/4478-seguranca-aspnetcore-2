@@ -9,7 +9,7 @@ namespace MedVoll.Web.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize(Roles = "Admin,Atendimento,RH")]
     public class MedicoController : ControllerBase
     {
         private const string PaginaCadastro = "Formulario";
@@ -37,8 +37,7 @@ namespace MedVoll.Web.Controllers
             return Ok(new { PaginaCadastro, dados });
         }
 
-        [Authorize(Roles = "Admin")]
-        [ValidateAntiForgeryToken()]
+        [Authorize(Policy = "EditorDeMedicos")]
         [HttpPost]
         public async Task<IActionResult> SalvarAsync([FromForm] MedicoDto dados)
         {
