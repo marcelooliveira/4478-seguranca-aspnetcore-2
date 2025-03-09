@@ -58,6 +58,12 @@ builder.Services.AddAuthorization(auth => {
 
 });
 
+//Remover cabeçalho Server
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.AddServerHeader = false;
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -66,6 +72,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseHttpsRedirection();
+app.UseHsts(); //HSTS = HTTP STRICT TRANSPORT SECURITY
 
 app.UseAuthentication();
 
