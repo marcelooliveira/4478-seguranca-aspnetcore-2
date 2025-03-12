@@ -47,8 +47,10 @@ public class AuthController : ControllerBase
         }
         await signInManager.SignInAsync(usuario, isPersistent: false);
 
-        return Ok(new { Mensagem = "Usuário registrado com sucesso",
-            Token = tokenJWTService.GerarTokenDeUsuario(usuarioDto)
+        return Ok(new
+        {
+            Mensagem = "Usuário registrado com sucesso",
+            Token = await tokenJWTService.GerarTokenDeUsuarioAsync(usuarioDto, usuario, userManager)
         });
     }
 
@@ -67,7 +69,7 @@ public class AuthController : ControllerBase
             return BadRequest("Falha no login do usuário.");
         }
 
-        UsuarioTokenDto usuarioTokenDto = tokenJWTService.GerarTokenDeUsuario(usuarioDto);
+        UsuarioTokenDto usuarioTokenDto = await tokenJWTService.GerarTokenDeUsuarioAsync(usuarioDto, usuario, userManager);
         var refreshToken = tokenJWTService.GerarRefreshToken();
         usuarioTokenDto.RefreshToken = refreshToken;
 
@@ -113,7 +115,7 @@ public class AuthController : ControllerBase
         }
 
         //Gera um novo token e um novo refresh token
-        var novoToken = tokenJWTService.GerarTokenDeUsuario(novoUsuarioDTO);
+        var novoToken = await tokenJWTService.GerarTokenDeUsuarioAsync(novoUsuarioDTO, vollMedUser, userManager);
         var novoRefreshToken = tokenJWTService.GerarRefreshToken();
 
         //Atualiza o refresh token do usuário

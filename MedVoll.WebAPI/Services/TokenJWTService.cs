@@ -1,4 +1,6 @@
 ﻿using MedVoll.WebAPI.Dtos;
+using MedVoll.WebAPI.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -16,15 +18,18 @@ namespace MedVoll.WebAPI.Services
             this.configuration = configuration;
         }
 
-        public UsuarioTokenDto GerarTokenDeUsuario(UsuarioDto usuarioDto)
+        public async Task<UsuarioTokenDto> GerarTokenDeUsuarioAsync(UsuarioDto usuarioDto, VollMedUser usuario, UserManager<VollMedUser> userManager)
         {
             // Definimos uma lista de Claims, que são informações do usuário e que queremos que estejam no token
-            var claims = new[]
+            var claims = new List<Claim>
             {
          new Claim("Alura","C#"),
          new Claim(JwtRegisteredClaimNames.UniqueName, usuarioDto.Email!),
          new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
      };
+
+            var roles = await userManager.GetRolesAsync(usuario);
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
             // Definimos a chave de acesso ao token.O valor da chave é obtido da configuração JWTKey:key, convertida para um array de bytes via Encoding.UTF8.GetBytes.
             var chave = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWTKey:key"]!));

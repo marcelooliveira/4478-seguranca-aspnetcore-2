@@ -10,6 +10,7 @@ using MedVoll.WebAPI.Extensions;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using MedVoll.WebAPI.Models;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,16 +34,20 @@ builder.Services.AddTransient<IMedicoService, MedicoService>();
 builder.Services.AddTransient<IConsultaService, ConsultaService>();
 builder.Services.AddScoped<TokenJWTService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(
-    opt => opt.TokenValidationParameters = new TokenValidationParameters
+    opt =>
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidAudience = builder.Configuration["JWTTokenConfiguration:Audience"],
-        ValidIssuer = builder.Configuration["JWTTokenConfiguration:Issuer"],
-        IssuerSigningKey = new SymmetricSecurityKey(
+        opt.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidAudience = builder.Configuration["JWTTokenConfiguration:Audience"],
+            ValidIssuer = builder.Configuration["JWTTokenConfiguration:Issuer"],
+            IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(builder.Configuration["JWTKey:key"]!)),
+        };
+        opt.TokenValidationParameters.RoleClaimType = ClaimTypes.Role;
     });
 builder.Services.ConfigureSwagger();
 
