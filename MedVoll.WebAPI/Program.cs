@@ -19,9 +19,15 @@ builder.Services.AddControllers();
 var connectionString = builder.Configuration.GetConnectionString("SqliteConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(x => x.UseSqlite(connectionString));
 
-builder.Services.AddIdentity<VollMedUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = true)
+//builder.Services.AddIdentity<VollMedUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = true)
+//    .AddEntityFrameworkStores<ApplicationDbContext>()
+//    .AddDefaultTokenProviders();
+
+builder.Services.AddIdentityCore<VollMedUser>(options => options.SignIn.RequireConfirmedAccount = true)
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders();
+    .AddDefaultTokenProviders()
+    .AddSignInManager<SignInManager<VollMedUser>>();
 
 ////////////////////// Swagger //////////////////////
 builder.Services.AddEndpointsApiExplorer();
@@ -69,6 +75,17 @@ builder.WebHost.ConfigureKestrel(options =>
     options.AddServerHeader = false;
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("OrigensEspecificas", policy =>
+    {
+        policy.WithOrigins("https://localhost:7085")
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials();
+    });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -84,6 +101,8 @@ app.UseHsts(); //HSTS = HTTP STRICT TRANSPORT SECURITY
 app.UseAuthentication();
 
 app.UseAuthorization();
+
+app.UseCors("OrigensEspecificas");
 
 using (var scope = app.Services.CreateScope())
 {

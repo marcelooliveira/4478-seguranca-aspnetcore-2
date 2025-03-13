@@ -63,7 +63,7 @@ public class AuthController : ControllerBase
             return BadRequest("usuário não encontrado.");
         }
 
-        var result = await signInManager.PasswordSignInAsync(usuarioDto.Email!, usuarioDto.Senha!, isPersistent: false, lockoutOnFailure: false);
+        var result = await signInManager.CheckPasswordSignInAsync(usuario, usuarioDto.Senha!, lockoutOnFailure: false);
         if (!result.Succeeded)
         {
             return BadRequest("Falha no login do usuário.");

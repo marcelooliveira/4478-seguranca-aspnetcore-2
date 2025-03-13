@@ -1,0 +1,37 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>
+
+@section Scripts
+{
+    <script type="text/javascript">
+
+        // WARNING: For GET requests, body is set to null by browsers.
+
+        var xhr = new XMLHttpRequest();
+
+        xhr.withCredentials = true;
+
+        xhr.addEventListener("readystatechange", function() {
+
+          if(this.readyState === 4) {
+
+            console.log(this.responseText);
+
+          }
+
+        });
+
+        xhr.open("GET", "https://localhost:7058/api/Medico/Listar?page=1");
+
+        xhr.setRequestHeader("Authorization", "Bearer COLE-AQUI-O-TOKEN-JWT");
+
+        xhr.send();
+
+    </script>
+}
